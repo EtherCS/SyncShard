@@ -1,0 +1,8 @@
+.DS_Store
+.vscode
+go.sum
+build/
+tmplog/
+*_test.go
+*_command.md
+# configs/
