@@ -13,9 +13,9 @@ import (
 
 	"github.com/spf13/viper"
 
-	syncapp "github.com/EtherCS/SyncShard/application/coordinator/abci"
-	syncnode "github.com/EtherCS/SyncShard/application/coordinator/validator"
-	hctypes "github.com/EtherCS/SyncShard/types"
+	syncapp "github.com/EtherCS/SyncShard/application/abci"
+	syncnode "github.com/EtherCS/SyncShard/application/validator"
+	syntypes "github.com/EtherCS/SyncShard/types"
 	abciclient "github.com/tendermint/tendermint/abci/client"
 	cfg "github.com/tendermint/tendermint/config"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -78,19 +78,19 @@ func main() {
 		}
 	}()
 	var validatorInterface *syncnode.ValidatorInterface
-	in_ip_temp := hctypes.HaechiAddress{
-		Ip:   hctypes.BytesToIp([]byte(beaconIp)),
+	in_ip_temp := syntypes.SyncAddress{
+		Ip:   syntypes.BytesToIp([]byte(beaconIp)),
 		Port: uint16(beaconPort),
 	}
-	out_ips_temps := make([]hctypes.HaechiAddress, shardNum)
+	out_ips_temps := make([]syntypes.SyncAddress, shardNum)
 	out_ports_temp := []byte(shardPorts)
 	out_ports := bytes.Split(out_ports_temp, []byte(","))
 	out_ips_temp := []byte(shardIps)
 	out_ips := bytes.Split(out_ips_temp, []byte(","))
 	for i, out_port := range out_ports {
 		temp_value64, _ := strconv.ParseUint(string(out_port), 10, 64)
-		out_ips_temps[i] = hctypes.HaechiAddress{
-			Ip:   hctypes.BytesToIp(out_ips[i]),
+		out_ips_temps[i] = syntypes.SyncAddress{
+			Ip:   syntypes.BytesToIp(out_ips[i]),
 			Port: uint16(temp_value64),
 		}
 	}

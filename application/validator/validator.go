@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	hctypes "github.com/EtherCS/SyncShard/types"
+	syntypes "github.com/EtherCS/SyncShard/types"
 	dbm "github.com/tendermint/tm-db"
 )
 
@@ -65,18 +65,18 @@ type ValidatorInterface struct {
 	shard_num           uint8
 	Shard_id            uint8
 	Leader              bool
-	input_addr          hctypes.HaechiAddress
-	output_shards_addrs []hctypes.HaechiAddress
+	input_addr          syntypes.SyncAddress
+	output_shards_addrs []syntypes.SyncAddress
 }
 
-func NewValidatorInterface(bcstate *BlockchainState, shard_num uint8, shard_id uint8, leader bool, in_addr hctypes.HaechiAddress, out_addrs []hctypes.HaechiAddress) *ValidatorInterface {
+func NewValidatorInterface(bcstate *BlockchainState, shard_num uint8, shard_id uint8, leader bool, in_addr syntypes.SyncAddress, out_addrs []syntypes.SyncAddress) *ValidatorInterface {
 	var new_validator ValidatorInterface
 	new_validator.BCState = bcstate
 	new_validator.shard_num = shard_num
 	new_validator.Shard_id = shard_id
 	new_validator.Leader = leader
 	new_validator.input_addr = in_addr
-	new_validator.output_shards_addrs = make([]hctypes.HaechiAddress, shard_num)
+	new_validator.output_shards_addrs = make([]syntypes.SyncAddress, shard_num)
 	for i := uint8(0); i < shard_num; i++ {
 		new_validator.output_shards_addrs[i].Ip = out_addrs[i].Ip
 		new_validator.output_shards_addrs[i].Port = out_addrs[i].Port
@@ -127,8 +127,8 @@ func (nw *ValidatorInterface) DeliverUpdateTx(tx []byte, shardid uint8) {
 	// }
 }
 
-func Serilization(tx []byte) (uint32, hctypes.TransactionType) {
-	var tx_json hctypes.TransactionType
+func Serilization(tx []byte) (uint32, syntypes.TransactionType) {
+	var tx_json syntypes.TransactionType
 	// tx_json.Tx_type = 4
 	txElements := bytes.Split(tx, []byte(","))
 	if len(txElements) == 0 {
@@ -170,7 +170,7 @@ func Serilization(tx []byte) (uint32, hctypes.TransactionType) {
 	return 0, tx_json
 }
 
-func Deserilization(tx hctypes.TransactionType) (uint32, []byte) {
+func Deserilization(tx syntypes.TransactionType) (uint32, []byte) {
 	var tempStr string = ""
 	tempStr += "fromid="
 	tempStr += strconv.Itoa(int(tx.From_shard))
@@ -192,7 +192,7 @@ func Deserilization(tx hctypes.TransactionType) (uint32, []byte) {
 	return 0, tx_byte
 }
 
-func ResolveTx(_tx []byte) (uint32, hctypes.TransactionType) {
+func ResolveTx(_tx []byte) (uint32, syntypes.TransactionType) {
 	isValid, tx := Serilization(_tx)
 	if isValid != 0 {
 		return 1, tx

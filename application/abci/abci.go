@@ -11,8 +11,8 @@ import (
 	// "log"
 	"strconv"
 
-	syncNode "github.com/EtherCS/SyncShard/application/coordinator/validator"
-	hctypes "github.com/EtherCS/SyncShard/types"
+	syncNode "github.com/EtherCS/SyncShard/application/validator"
+	syntypes "github.com/EtherCS/SyncShard/types"
 	abcicode "github.com/tendermint/tendermint/abci/example/code"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 )
@@ -64,7 +64,7 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 	var err1, err2 error
 	var events []abcitypes.Event
 	var event_type string
-	new_tx := hctypes.TransactionType{
+	new_tx := syntypes.TransactionType{
 		From_shard: tx_json.From_shard,
 		To_shard:   tx_json.To_shard,
 		Tx_type:    tx_json.Tx_type,

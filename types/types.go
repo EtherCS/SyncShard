@@ -6,9 +6,20 @@ import (
 	"strconv"
 )
 
-type HaechiAddress struct {
+type SyncAddress struct {
 	Ip   net.IP
 	Port uint16
+}
+
+type TransactionType struct {
+	From_shard uint8 // the sender's shard
+	To_shard   uint8 // the receiver's shard
+	Tx_type    uint8
+	From       []byte
+	To         []byte
+	Value      uint32
+	Data       []byte
+	Nonce      uint32 // TODO: enable contineous tx requests by setting vary nonce
 }
 
 func BytesToIp(bt []byte) net.IP {
