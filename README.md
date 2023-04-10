@@ -1,7 +1,11 @@
 # SyncShard
 SyncShard is an availability-priority synchronization protocol for a blockchain sharding system
 
-## test
+## Compile
+```
+make build
+```
+## Test
 
 - run consensus nodes
 ```
