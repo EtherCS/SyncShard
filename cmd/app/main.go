@@ -25,6 +25,7 @@ import (
 
 var homeDir, isLeader, shardPorts, beaconIp, shardIps string
 var beaconPort, shardNum, shardid uint
+var keyShowNum uint64
 
 // var isLeader bool
 
@@ -34,6 +35,7 @@ func init() {
 	flag.UintVar(&shardNum, "shards", 2, "the number of shards")
 	flag.UintVar(&shardid, "shardid", 0, "shard id")
 	flag.UintVar(&beaconPort, "beaconport", 10057, "beacon chain port")
+	flag.Uint64Var(&keyShowNum, "keynum", 100, "the number of most frequent key")
 	flag.StringVar(&shardPorts, "shardports", "20057,21057", "shards chain port")
 	flag.StringVar(&beaconIp, "beaconip", "127.0.0.1", "beacon chain ip")
 	flag.StringVar(&shardIps, "shardips", "127.0.0.1,127.0.0.1", "shards chain ip")
@@ -95,9 +97,9 @@ func main() {
 		}
 	}
 	if isLeader == "true" {
-		validatorInterface = syncnode.NewValidatorInterface(db, uint8(shardNum), uint8(shardid), true, in_ip_temp, out_ips_temps)
+		validatorInterface = syncnode.NewValidatorInterface(db, uint8(shardNum), uint8(shardid), true, in_ip_temp, out_ips_temps, keyShowNum)
 	} else if isLeader == "false" {
-		validatorInterface = syncnode.NewValidatorInterface(db, uint8(shardNum), uint8(shardid), false, in_ip_temp, out_ips_temps)
+		validatorInterface = syncnode.NewValidatorInterface(db, uint8(shardNum), uint8(shardid), false, in_ip_temp, out_ips_temps, keyShowNum)
 	}
 
 	app := syncapp.NewsyncApplication(validatorInterface)

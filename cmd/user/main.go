@@ -10,7 +10,12 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	syntypes "github.com/EtherCS/SyncShard/types"
 )
+
+var KEY_NUM uint8 = syntypes.Key_Num
+var ADDR_LENGTH uint8 = syntypes.Addr_Length
 
 var shardNum, batchSize, beaconPort, concurrentNum, reqDuration uint
 
@@ -67,10 +72,26 @@ func send_request(s_port uint, s_ip string, b_port uint, b_ip string, tx_num uin
 	for {
 		ctx_num := uint(float64(tx_num) * cross_rate)
 		for i := uint(0); i < tx_num-ctx_num; i++ {
-			http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=ABCD,to=EFGH,value=10,data=NONE,nonce=%v\"", s_ip, s_port, from_id, get_rand(int64(s_num)), 0, get_rand(math.MaxInt32)))
+			var temp_from string = "ABCD" + get_rand(int64(KEY_NUM))
+			var temp_to string = "EFGH" + get_rand(int64(KEY_NUM))
+			for len(temp_from) < int(ADDR_LENGTH) {
+				temp_from = temp_from + "0"
+			}
+			for len(temp_to) < int(ADDR_LENGTH) {
+				temp_to = temp_to + "0"
+			}
+			http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=%v,to=%v,value=10,data=NONE,nonce=%v\"", s_ip, s_port, from_id, get_rand(int64(s_num)), 0, temp_from, temp_to, get_rand(math.MaxInt32)))
 		}
 		for i := uint(0); i < ctx_num; i++ {
-			http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=EFGH,to=WXYZ,value=10,data=NONE,nonce=%v\"", s_ip, s_port, from_id, get_rand(int64(s_num)), 1, get_rand(math.MaxInt32)))
+			var temp_from string = "JKMN" + get_rand(int64(KEY_NUM))
+			var temp_to string = "WXYZ" + get_rand(int64(KEY_NUM))
+			for len(temp_from) < int(ADDR_LENGTH) {
+				temp_from = temp_from + "0"
+			}
+			for len(temp_to) < int(ADDR_LENGTH) {
+				temp_to = temp_to + "0"
+			}
+			http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=%v,to=%v,value=10,data=NONE,nonce=%v\"", s_ip, s_port, from_id, get_rand(int64(s_num)), 1, temp_from, temp_to, get_rand(math.MaxInt32)))
 		}
 	}
 }

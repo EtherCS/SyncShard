@@ -23,17 +23,15 @@ A transaction is defined as a json including:
 }
 e.g., sent by user as: "type=0,from=ABCD,to=DCBA,value=0,data=NONE"
 */
+
 const (
-	Addr_Length uint8 = 4
-	Data_Length uint8 = 4
-)
-const (
-	Type_Num              uint8 = 5
+	Type_Num              uint8 = 6
 	IntraShard_TX         uint8 = 0
 	InterShard_TX_Verify  uint8 = 1
 	InterShard_TX_Execute uint8 = 2
 	InterShard_TX_Commit  uint8 = 3
 	InterShard_TX_Update  uint8 = 4
+	Synchronization_TX    uint8 = 5
 )
 
 // var (
@@ -67,9 +65,11 @@ type ValidatorInterface struct {
 	Leader              bool
 	input_addr          syntypes.SyncAddress
 	output_shards_addrs []syntypes.SyncAddress
+	KeyFrequency        map[string]int
+	ShowKeyNum          uint64
 }
 
-func NewValidatorInterface(bcstate *BlockchainState, shard_num uint8, shard_id uint8, leader bool, in_addr syntypes.SyncAddress, out_addrs []syntypes.SyncAddress) *ValidatorInterface {
+func NewValidatorInterface(bcstate *BlockchainState, shard_num uint8, shard_id uint8, leader bool, in_addr syntypes.SyncAddress, out_addrs []syntypes.SyncAddress, countNum uint64) *ValidatorInterface {
 	var new_validator ValidatorInterface
 	new_validator.BCState = bcstate
 	new_validator.shard_num = shard_num
@@ -77,6 +77,8 @@ func NewValidatorInterface(bcstate *BlockchainState, shard_num uint8, shard_id u
 	new_validator.Leader = leader
 	new_validator.input_addr = in_addr
 	new_validator.output_shards_addrs = make([]syntypes.SyncAddress, shard_num)
+	new_validator.KeyFrequency = make(map[string]int)
+	new_validator.ShowKeyNum = countNum
 	for i := uint8(0); i < shard_num; i++ {
 		new_validator.output_shards_addrs[i].Ip = out_addrs[i].Ip
 		new_validator.output_shards_addrs[i].Port = out_addrs[i].Port
@@ -150,17 +152,17 @@ func Serilization(tx []byte) (uint32, syntypes.TransactionType) {
 				return 0, tx_json
 			}
 		case string(kv[0]) == "from":
-			tx_json.From = make([]byte, Addr_Length)
+			tx_json.From = make([]byte, syntypes.Addr_Length)
 			copy(tx_json.From, kv[1])
 		case string(kv[0]) == "to":
-			tx_json.To = make([]byte, Addr_Length)
+			tx_json.To = make([]byte, syntypes.Addr_Length)
 			copy(tx_json.To, kv[1])
 		case string(kv[0]) == "value":
 			// temp_value := string(kv[1])
 			temp_value64, _ := strconv.ParseUint(string(kv[1]), 10, 64)
 			tx_json.Value = uint32(temp_value64)
 		case string(kv[0]) == "data":
-			tx_json.Data = make([]byte, Data_Length)
+			tx_json.Data = make([]byte, syntypes.Data_Length)
 			copy(tx_json.Data, kv[1])
 		case string(kv[0]) == "nonce":
 			temp_value64, _ := strconv.ParseUint(string(kv[1]), 10, 64)

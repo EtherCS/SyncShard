@@ -2,8 +2,6 @@ package abci
 
 import (
 	"encoding/binary"
-	"fmt"
-	"time"
 
 	// "log"
 	// "time"
@@ -78,9 +76,30 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 		err1 = app.Node.BCState.Database.Set(prefixKey(tx_json.From), []byte("0"))
 		err2 = app.Node.BCState.Database.Set(prefixKey(tx_json.To), []byte("0"))
 		app.Node.BCState.Size++
+		// count frequncy
+		value_from, ok_from := app.Node.KeyFrequency[string(tx_json.From)]
+		if ok_from { // already exists
+			app.Node.KeyFrequency[string(tx_json.From)] = value_from + 1
+		} else { // first appear
+			app.Node.KeyFrequency[string(tx_json.From)] = 0
+		}
+		// fmt.Printf("From %s, count %d \n", string(tx_json.From), app.Node.KeyFrequency[string(tx_json.From)])
+		value_to, ok_to := app.Node.KeyFrequency[string(tx_json.To)]
+		if ok_to { // already exists
+			app.Node.KeyFrequency[string(tx_json.To)] = value_to + 1
+		} else { // first appear
+			app.Node.KeyFrequency[string(tx_json.To)] = 0
+		}
+		// fmt.Printf("To %s, count %d \n", string(tx_json.To), app.Node.KeyFrequency[string(tx_json.To)])
 	} else if tx_json.Tx_type == syncNode.InterShard_TX_Verify {
 		event_type = "inter-shard verification transaction"
 		err1 = app.Node.BCState.Database.Set(prefixKey(tx_json.From), []byte("lock"))
+		value_from, ok_from := app.Node.KeyFrequency[string(tx_json.From)]
+		if ok_from { // already exists
+			app.Node.KeyFrequency[string(tx_json.From)] = value_from + 1
+		} else { // first appear
+			app.Node.KeyFrequency[string(tx_json.From)] = 0
+		}
 		new_tx.Tx_type = syncNode.InterShard_TX_Execute
 		_, exec_tx := syncNode.Deserilization(new_tx)
 		if app.Node.Leader {
@@ -90,6 +109,12 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 	} else if tx_json.Tx_type == syncNode.InterShard_TX_Execute {
 		event_type = "inter-shard execution transaction"
 		err2 = app.Node.BCState.Database.Set(prefixKey(tx_json.To), []byte("lock"))
+		value_to, ok_to := app.Node.KeyFrequency[string(tx_json.To)]
+		if ok_to { // already exists
+			app.Node.KeyFrequency[string(tx_json.To)] = value_to + 1
+		} else { // first appear
+			app.Node.KeyFrequency[string(tx_json.To)] = 0
+		}
 		new_tx.Tx_type = syncNode.InterShard_TX_Commit
 		_, commit_tx := syncNode.Deserilization(new_tx)
 		if app.Node.Leader {
@@ -99,10 +124,10 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 		event_type = "inter-shard commit transaction"
 		err1 = app.Node.BCState.Database.Set(prefixKey(tx_json.From), []byte("0"))
 		// Trace: cross-shard tx confirmation latency
-		if string(tx_json.From) == "CROS" {
-			fmt.Println("cross-shard trace, nonce is", tx_json.Nonce)
-			fmt.Println("cross-shard trace, end time is", time.Now())
-		}
+		// if string(tx_json.From) == "CROS" {
+		// 	fmt.Println("cross-shard trace, nonce is", tx_json.Nonce)
+		// 	fmt.Println("cross-shard trace, end time is", time.Now())
+		// }
 		new_tx.Tx_type = syncNode.InterShard_TX_Update
 		_, update_tx := syncNode.Deserilization(new_tx)
 		if app.Node.Leader {
@@ -112,6 +137,11 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 		event_type = "inter-shard update transaction"
 		err2 = app.Node.BCState.Database.Set(prefixKey(tx_json.To), []byte("0"))
 		app.Node.BCState.Size++
+	} else if tx_json.Tx_type == syncNode.Synchronization_TX {
+		// print frequency information
+		syntypes.PrintKeyFrequency(app.Node.KeyFrequency, int(app.Node.ShowKeyNum), int(app.Node.BCState.Height+1))
+		// send data to new nodes
+		// count latency
 	}
 	if err1 != nil || err2 != nil {
 		panic(err1)

@@ -13,8 +13,9 @@ BEACON_PORT=10057
 BEACON_IP="127.0.0.1"
 SHARD_PORTS="20057,21057"
 SHARD_IPS="127.0.0.1,127.0.0.1"
+KEY_NUM = 100
 
-while getopts ":n:m:p:i:s:x:d:" opt
+while getopts ":n:m:p:i:s:x:d:k:" opt
 do 
     case $opt in
     n) # shard number
@@ -44,7 +45,11 @@ do
     d) # executing duration
         echo "duration is $OPTARG"  
         DURATION=$OPTARG
-        ;;  
+        ;; 
+    k) # the number of most frequent keys
+        echo "the number of most frequent keys is $OPTARG"
+        KEY_NUM=$OPTARG
+        ;;
     ?)  
         echo "unknown: $OPTARG"
         ;;
@@ -67,10 +72,10 @@ do
     do
         if [ $k -eq 0 ]; then
             echo "running shard$j leader"
-            ./build/appnode -home $TM_HOME/shard$j/node$k -leader "true" -shards $SHARD_NUM -shardid $j -beaconport $BEACON_PORT -shardports $SHARD_PORTS -beaconip $BEACON_IP -shardips $SHARD_IPS &> $LOG_DIR/shard$j-node$k.log &
+            ./build/appnode -home $TM_HOME/shard$j/node$k -leader "true" -shards $SHARD_NUM -shardid $j -beaconport $BEACON_PORT -shardports $SHARD_PORTS -beaconip $BEACON_IP -shardips $SHARD_IPS -keynum $KEY_NUM &> $LOG_DIR/shard$j-node$k.log &
         else
             echo "running shard$j validator$k"
-            ./build/appnode -home $TM_HOME/shard$j/node$k -leader "false" -shards $SHARD_NUM -shardid $j -beaconport $BEACON_PORT -shardports $SHARD_PORTS -beaconip $BEACON_IP -shardips $SHARD_IPS &> $LOG_DIR/shard$j-node$k.log &
+            ./build/appnode -home $TM_HOME/shard$j/node$k -leader "false" -shards $SHARD_NUM -shardid $j -beaconport $BEACON_PORT -shardports $SHARD_PORTS -beaconip $BEACON_IP -shardips $SHARD_IPS -keynum $KEY_NUM &> $LOG_DIR/shard$j-node$k.log &
         fi
     sleep 1
     done
