@@ -30,9 +30,7 @@ var _ abcitypes.Application = (*syncApplication)(nil)
 
 type syncApplication struct {
 	abcitypes.BaseApplication
-	// mu   sync.Mutex
 	Node *syncNode.ValidatorInterface
-	// intraTxBatch *badger.Txn
 }
 
 func NewsyncApplication(node *syncNode.ValidatorInterface) *syncApplication {
@@ -83,14 +81,12 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 		} else { // first appear
 			app.Node.KeyFrequency[string(tx_json.From)] = 0
 		}
-		// fmt.Printf("From %s, count %d \n", string(tx_json.From), app.Node.KeyFrequency[string(tx_json.From)])
 		value_to, ok_to := app.Node.KeyFrequency[string(tx_json.To)]
 		if ok_to { // already exists
 			app.Node.KeyFrequency[string(tx_json.To)] = value_to + 1
 		} else { // first appear
 			app.Node.KeyFrequency[string(tx_json.To)] = 0
 		}
-		// fmt.Printf("To %s, count %d \n", string(tx_json.To), app.Node.KeyFrequency[string(tx_json.To)])
 	} else if tx_json.Tx_type == syncNode.InterShard_TX_Verify {
 		event_type = "inter-shard verification transaction"
 		err1 = app.Node.BCState.Database.Set(prefixKey(tx_json.From), []byte("lock"))
@@ -123,11 +119,6 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 	} else if tx_json.Tx_type == syncNode.InterShard_TX_Commit {
 		event_type = "inter-shard commit transaction"
 		err1 = app.Node.BCState.Database.Set(prefixKey(tx_json.From), []byte("0"))
-		// Trace: cross-shard tx confirmation latency
-		// if string(tx_json.From) == "CROS" {
-		// 	fmt.Println("cross-shard trace, nonce is", tx_json.Nonce)
-		// 	fmt.Println("cross-shard trace, end time is", time.Now())
-		// }
 		new_tx.Tx_type = syncNode.InterShard_TX_Update
 		_, update_tx := syncNode.Deserilization(new_tx)
 		if app.Node.Leader {
@@ -138,10 +129,10 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 		err2 = app.Node.BCState.Database.Set(prefixKey(tx_json.To), []byte("0"))
 		app.Node.BCState.Size++
 	} else if tx_json.Tx_type == syncNode.Synchronization_TX {
+		// print simulation latency
+		syntypes.PrintSyncLatency(app.Node.KeyFrequency, int(app.Node.ShowKeyNum), int(app.Node.BCState.Height+1))
 		// print frequency information
 		syntypes.PrintKeyFrequency(app.Node.KeyFrequency, int(app.Node.ShowKeyNum), int(app.Node.BCState.Height+1))
-		// send data to new nodes
-		// count latency
 	}
 	if err1 != nil || err2 != nil {
 		panic(err1)
@@ -165,7 +156,6 @@ func (app *syncApplication) EndBlock(req abcitypes.RequestEndBlock) abcitypes.Re
 }
 
 func (app *syncApplication) Commit() abcitypes.ResponseCommit {
-	// tln("commit tx, current time is: " + time.Now().String())
 	appHash := make([]byte, 8)
 	binary.PutVarint(appHash, app.Node.BCState.Size)
 	app.Node.BCState.AppHash = appHash

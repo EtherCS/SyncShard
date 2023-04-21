@@ -74,21 +74,45 @@ func sortMapByValue(m map[string]int) SortMapList {
 func PrintKeyFrequency(m map[string]int, showNum int, height int) {
 	var sortMap SortMapList = sortMapByValue(m)
 	// var count int = 0
-	fmt.Printf("In block height %d, the frequency list is \n", height)
 	fmt.Println("Key Ratio")
-	// fmt.Println("Showed key size is ", len(sortMap))
+	var ratio float64 = 0.0
 	var total_num int = 0
 	for i := 0; i < len(sortMap); i++ {
 		if i >= showNum {
 			break
 		}
 		total_num += sortMap[i].Value
-		// fmt.Printf("%s %d \n", sortMap[i].Key, sortMap[i].Value)
+	}
+	for i := 0; i < len(sortMap); i++ {
+		if i >= showNum {
+			fmt.Printf("Total ratio is %f \n", ratio)
+			break
+		}
+		fmt.Printf("%s %f \n", sortMap[i].Key, float64(sortMap[i].Value)/float64(total_num))
+		if i <= showNum/2 {
+			ratio += float64(sortMap[i].Value) / float64(total_num)
+		}
+	}
+}
+
+func PrintSyncLatency(m map[string]int, showNum int, blockNum int) {
+	var sortMap SortMapList = sortMapByValue(m)
+	var ratio float64 = 0.0
+	var total_num int = 0
+	for i := 0; i < len(sortMap); i++ {
+		if i >= showNum {
+			break
+		}
+		total_num += sortMap[i].Value
 	}
 	for i := 0; i < len(sortMap); i++ {
 		if i >= showNum {
 			break
 		}
-		fmt.Printf("%s %f \n", sortMap[i].Key, float64(sortMap[i].Value)/float64(total_num))
+		if i <= showNum/2 {
+			ratio += float64(sortMap[i].Value) / float64(total_num)
+		}
 	}
+	fmt.Printf("Synchronization latency with SyncShard: %f s \n", 1*ratio+(1.0-ratio)*float64(blockNum))
+	fmt.Printf("Synchronization latency with traditional method: %f s\n", float64(blockNum))
 }

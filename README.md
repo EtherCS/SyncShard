@@ -1,6 +1,8 @@
 # SyncShard
 SyncShard is an availability-priority synchronization protocol for a blockchain sharding system
 
+## Architecture
+![alt text](https://github.com/EtherCS/SyncShard/blob/master/figure/architecture.png.jpg?raw=true)
 ## Compile
 ```
 make build

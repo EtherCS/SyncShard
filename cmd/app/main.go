@@ -66,14 +66,7 @@ func main() {
 	}
 
 	dbPath := filepath.Join(homeDir, "leveldb")
-	// fmt.Println("path database is: " + dbPath)
 	db := syncnode.NewBlockchainState("leveldb", dbPath)
-	// db, err := dbm.NewGoLevelDBWithOpts
-	// db := dbm.NewMemDB()
-	// db, err := badger.Open(badger.DefaultOptions(dbPath))
-	// if err != nil {
-	// 	log.Fatalf("Opening database: %v", err)
-	// }
 	defer func() {
 		if err := db.Database.Close(); err != nil {
 			log.Fatalf("Closing database: %v", err)

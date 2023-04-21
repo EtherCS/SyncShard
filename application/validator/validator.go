@@ -94,10 +94,6 @@ func (nw *ValidatorInterface) DeliverExecutionTx(tx []byte, shardid uint8) {
 	request += tx_str
 	request += "\""
 	http.Get("http://" + request)
-	// _, err := http.Get("http://" + request)
-	// if err != nil {
-	// 	fmt.Println("Error: deliver execution tx error when request a curl")
-	// }
 }
 
 func (nw *ValidatorInterface) DeliverCommitTx(tx []byte, shardid uint8) {
@@ -108,14 +104,9 @@ func (nw *ValidatorInterface) DeliverCommitTx(tx []byte, shardid uint8) {
 	request += tx_str
 	request += "\""
 	http.Get("http://" + request)
-	// _, err := http.Get("http://" + request)
-	// if err != nil {
-	// 	fmt.Println("Error: deliver execution tx error when request a curl")
-	// }
 }
 
 func (nw *ValidatorInterface) DeliverUpdateTx(tx []byte, shardid uint8) {
-	// output_addr := net.JoinHostPort(nw.ip_output_shard.String(), strconv.Itoa(int(nw.port_output_shard)))
 	tx_str := string(tx)
 	receiver_addr := net.JoinHostPort(nw.output_shards_addrs[shardid].Ip.String(), strconv.Itoa(int(nw.output_shards_addrs[shardid].Port)))
 	request := receiver_addr
@@ -123,10 +114,6 @@ func (nw *ValidatorInterface) DeliverUpdateTx(tx []byte, shardid uint8) {
 	request += tx_str
 	request += "\""
 	http.Get("http://" + request)
-	// _, err := http.Get("http://" + request)
-	// if err != nil {
-	// 	fmt.Println("Error: deliver execution tx error when request a curl")
-	// }
 }
 
 func Serilization(tx []byte) (uint32, syntypes.TransactionType) {
@@ -204,8 +191,6 @@ func ResolveTx(_tx []byte) (uint32, syntypes.TransactionType) {
 	} else {
 		return 1, tx
 	}
-	// txType := IntraShard_TX
-	// return txType
 }
 
 func GetTxType(_tx []byte) uint8 {

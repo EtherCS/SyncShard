@@ -7,10 +7,7 @@ import (
 	"math"
 	"math/big"
 	"net/http"
-	// "time"
 )
-
-// ./build/sync -shardport "20057" -shardip "127.0.0.1"
 
 var shardPort, shardIp, beaconPort, beaconIp string
 
@@ -23,23 +20,6 @@ func init() {
 
 func main() {
 	flag.Parse()
-	// intra-shard latency
-	// intra_start := time.Now()
-	// // fmt.Println("intra-shard start in:", intra_start)
-	// intra_req := fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=ABCD,to=EFGH,value=10,data=NONE,nonce=%v\"", shardIp, shardPort, 0, 0, 0, get_rand(math.MaxInt32))
-	// intra_res, _ := http.Get(intra_req)
-	// intra_elapsed := time.Since(intra_start)
-	// fmt.Println("intra-shard receive", intra_res)
-	// fmt.Println("Intra-shard confirmation latency is:", intra_elapsed)
-
-	// cross-shard latency
-	// cross_start := time.Now()
-	// nonce := get_rand(math.MaxInt64)
-	// fmt.Println("Cross-shard tx start in:", cross_start, "nonce is", nonce)
-	// http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=CROS,to=WXYZ,value=10,data=NONE,nonce=%v\"", shardIp, shardPort, 0, 1, 1, get_rand(math.MaxInt32)))
-
-	// synchronization request
-	fmt.Println("Synchronization test:")
 	http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"fromid=%v,toid=%v,type=%v,from=SYNC,to=WXYZ,value=10,data=NONE,nonce=%v\"", shardIp, shardPort, 0, 1, 5, get_rand(math.MaxInt32)))
 }
 
