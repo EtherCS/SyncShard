@@ -130,7 +130,7 @@ func (app *syncApplication) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.
 		app.Node.BCState.Size++
 	} else if tx_json.Tx_type == syncNode.Synchronization_TX {
 		// print simulation latency
-		syntypes.PrintSyncLatency(app.Node.KeyFrequency, int(app.Node.ShowKeyNum), int(app.Node.BCState.Height+1))
+		syntypes.PrintSyncLatency(app.Node.KeyFrequency, int(app.Node.ShowKeyNum), int(app.Node.BCState.Height+1), int(new_tx.Value))
 		// print frequency information
 		syntypes.PrintKeyFrequency(app.Node.KeyFrequency, int(app.Node.ShowKeyNum), int(app.Node.BCState.Height+1))
 	}

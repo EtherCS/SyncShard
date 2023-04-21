@@ -20,14 +20,14 @@ type SyncAddress struct {
 }
 
 type TransactionType struct {
-	From_shard uint8 // the sender's shard
-	To_shard   uint8 // the receiver's shard
-	Tx_type    uint8
-	From       []byte
-	To         []byte
+	From_shard uint8  // the sender's shard ID
+	To_shard   uint8  // the receiver's shard ID
+	Tx_type    uint8  // transaction request or synchronization request
+	From       []byte // the address of the transaction's sender
+	To         []byte // the address of the transaction's receiver
 	Value      uint32
-	Data       []byte
-	Nonce      uint32 // TODO: enable contineous tx requests by setting vary nonce
+	Data       []byte // the data used to execute the transaction
+	Nonce      uint32
 }
 
 func BytesToIp(bt []byte) net.IP {
@@ -95,7 +95,7 @@ func PrintKeyFrequency(m map[string]int, showNum int, height int) {
 	}
 }
 
-func PrintSyncLatency(m map[string]int, showNum int, blockNum int) {
+func PrintSyncLatency(m map[string]int, showNum int, blockNum int, blockSize int) {
 	var sortMap SortMapList = sortMapByValue(m)
 	var ratio float64 = 0.0
 	var total_num int = 0
@@ -113,6 +113,6 @@ func PrintSyncLatency(m map[string]int, showNum int, blockNum int) {
 			ratio += float64(sortMap[i].Value) / float64(total_num)
 		}
 	}
-	fmt.Printf("Synchronization latency with SyncShard: %f s \n", 1*ratio+(1.0-ratio)*float64(blockNum))
-	fmt.Printf("Synchronization latency with traditional method: %f s\n", float64(blockNum))
+	fmt.Printf("Synchronization latency with SyncShard: %f s \n", 1*ratio+(1.0-ratio)*float64(blockNum)*(float64(blockSize)/100.0))
+	fmt.Printf("Synchronization latency with traditional method: %f s\n", float64(blockNum)*(float64(blockSize)/100.0))
 }

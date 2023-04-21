@@ -28,9 +28,7 @@ func init() {
 	flag.UintVar(&batchSize, "batch", 10, "the batch size of one request")
 	flag.UintVar(&concurrentNum, "parallel", 100, "concurrent number for sending requests")
 	flag.UintVar(&reqDuration, "duration", 120, "duration of sending request")
-	// flag.Int64Var(&requestRate, "rate", 100, "the request rate controlled by sleeping time, ms")
 	flag.Float64Var(&crossRate, "ratio", 0.8, "the ratio of cross-shard txs")
-
 	flag.UintVar(&beaconPort, "beaconport", 10057, "beacon chain port")
 	flag.StringVar(&shardPorts, "shardports", "20057,21057", "shards chain port")
 	flag.StringVar(&beaconIp, "beaconip", "127.0.0.1", "beacon chain ip")
