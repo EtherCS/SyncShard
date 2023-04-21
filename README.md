@@ -8,21 +8,6 @@ SyncShard is an availability-priority synchronization protocol for a blockchain 
 make build
 ```
 ## Test
-
-- run consensus nodes
-```
-./scripts/run_test.sh -n 2 -m 2 -p 10057 -i "127.0.0.1" -s "20057,21057" -x "127.0.0.2,127.0.0.3" -k 100
-```
-- run client
-```
-./build/user -shards 2 -beaconport 10057 -beaconip "127.0.0.1" -shardports "20057,21057" -shardips "127.0.0.1,127.0.0.1" -batch 10 -ratio 0.0
-```
-
-- run synchronization request
-```
-./build/sync -shardport "20057" -shardip "127.0.0.1"
-```
-
 ## node parameter description
 
 | node parameters | description        | default               |
@@ -48,3 +33,35 @@ make build
 | ratio             | cross-shard txs ratio     | 0.8                   |
 | parallel          | concurrent request number | 100                   |
 | duration          | execution duration, s     | 120                   |
+
+### 1. Single machine test
+
+- run consensus nodes
+```
+./scripts/run_test.sh -n 2 -m 2 -p 10057 -i "127.0.0.1" -s "20057,21057" -x "127.0.0.2,127.0.0.3" -k 100
+```
+- run client
+```
+./build/user -shards 2 -beaconport 10057 -beaconip "127.0.0.1" -shardports "20057,21057" -shardips "127.0.0.1,127.0.0.1" -batch 10 -ratio 0.0
+```
+
+- run synchronization request
+```
+./build/sync -shardport "20057" -shardip "127.0.0.1"
+```
+
+### 2. Multiple machines test (different IPs)
+**Very simple! Just replace "127.0.0.1" with the machine IPs. For example, assume two machines have #IP1 and #IP2**
+- run consensus nodes
+```
+./scripts/run_test.sh -n 2 -m 2 -p 10057 -i "127.0.0.1" -s "20057,21057" -x "#IP1,#IP2" -k 100
+```
+- run client
+```
+./build/user -shards 2 -beaconport 10057 -beaconip "127.0.0.1" -shardports "20057,21057" -shardips "#IP1,#IP2" -batch 10 -ratio 0.0
+```
+
+- run synchronization request
+```
+./build/sync -shardport "20057" -shardip "#IP1"
+```
