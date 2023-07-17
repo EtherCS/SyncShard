@@ -2,32 +2,29 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
 	"flag"
 	"fmt"
-	"net"
+	"math"
+	"math/big"
+	"net/http"
 	"strconv"
 	"time"
-
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	// "time"
 )
 
-// var groupBlocks1, groupBlocks2 []types.Block
-var groupBlocks1, groupBlocks2 tmbytes.HexBytes = nil, nil
-var strBlockHash1, strBlockHash2 string = "", ""
-
-// var (
-// 	DETECT_HEIGHT int64 = 5
-// )
-
-var block_height int64
+var shardNum, reqDuration, concurrentNum uint
 var shardPorts, shardIps string
 
-// var isLeader bool
-
+// group 1: ./build/user -parallel 200 -shardports "20057,20157,20257" -shardips "18.188.221.188,3.145.146.41,13.59.36.127"
+// two groups: ./build/user -parallel 200 -shardports "20057,20157,20257,21057,21157,21357" -shardips "18.188.221.188,3.145.146.41,13.59.36.127,18.188.221.188,3.145.146.41,13.59.36.127"
+// ./build/user -parallel 200 -shardports "20057,20157,20257,21057,21157,21357" -shardips "18.188.221.188,3.145.146.41,13.59.36.127,3.139.65.78,3.19.238.75,18.221.138.47"
 func init() {
-	flag.Int64Var(&block_height, "block_height", 5, "block height for recovery detection")
-	flag.StringVar(&shardPorts, "shardports", "20351,21351", "shards chain port")
-	flag.StringVar(&shardIps, "shardips", "127.0.0.1,127.0.0.1", "shards chain ip")
+	flag.UintVar(&shardNum, "shards", 2, "the number of shards")
+	flag.UintVar(&reqDuration, "duration", 120, "duration of sending request")
+	flag.StringVar(&shardPorts, "shardports", "20057,20157,20257", "shards chain port")
+	flag.StringVar(&shardIps, "shardips", "127.0.0.1,127.0.0.1,127.0.0.1", "shards chain ip")
+	flag.UintVar(&concurrentNum, "parallel", 100, "concurrent number for sending requests")
 }
 
 func main() {
@@ -36,135 +33,41 @@ func main() {
 	shard_ports := bytes.Split(shard_ports_temp, []byte(","))
 	shard_ips_temp := []byte(shardIps)
 	shard_ips := bytes.Split(shard_ips_temp, []byte(","))
-	// var ports_value64 []uint64
-	// for _, shard_port := range shard_ports {
-	// 	temp_port, _ := strconv.ParseUint(string(shard_port), 10, 64)
-	// 	ports_value64 = append(ports_value64, temp_port)
+	var ports_value64 []uint64
+	for _, shard_port := range shard_ports {
+		temp_port, _ := strconv.ParseUint(string(shard_port), 10, 64)
+		ports_value64 = append(ports_value64, temp_port)
+	}
+
+	for p := 0; p < int(concurrentNum); p++ {
+		for i, _ := range shard_ports {
+			go send_request(uint(ports_value64[i]), string(shard_ips[i]))
+		}
+		// time.Sleep(time.Duration(requestRate) * time.Millisecond)
+	}
+	time.Sleep(time.Duration(reqDuration) * time.Second)
+	// for i := 0; i < 100; i++ {
+	// 	// for true {
+	// 	request1 := fmt.Sprintf("http://127.0.0.1:20057/broadcast_tx_commit?tx=\"abcd%v\"", get_rand(math.MaxInt64))
+	// 	request2 := fmt.Sprintf("http://127.0.0.1:21057/broadcast_tx_commit?tx=\"abcd%v\"", get_rand(math.MaxInt64))
+	// 	go send_request("127.0.0.1")
+	// 	go http.Get(request2)
+	// 	// time.Sleep(100 * time.Millisecond)
 	// }
-	fmt.Println("Recovery height is", block_height)
-	fmt.Println("connecting to node", string(shard_ips[0])+":"+string(shard_ports[0]))
-	fmt.Println("connecting to node", string(shard_ips[1])+":"+string(shard_ports[1]))
-	conn1, err1 := net.Dial("tcp", string(shard_ips[0])+":"+string(shard_ports[0]))
-	conn2, err2 := net.Dial("tcp", string(shard_ips[1])+":"+string(shard_ports[1]))
-	if err1 != nil || err2 != nil {
-		fmt.Println("conn server failed")
-		return
-	}
-	defer conn1.Close()
-	defer conn2.Close()
-	done1 := make(chan string)
-	done2 := make(chan string)
-
-	// wait 20s for requesting blocks
-	// time.Sleep(20000 * time.Microsecond)
-
-	go handleWriteGroupOne(conn1, done1)
-	go handleReadGroupOne(conn1, done1)
-	go handleWriteGroupTwo(conn2, done2)
-	go handleReadGroupTwo(conn2, done2)
-
-	// catch the signal
-	fmt.Println(<-done1)
-	fmt.Println(<-done2)
 }
 
-// Request format: 5 is the inconsistent height
-// Get block: Rollback=0;Height=5;
-// Send inconsistent evidence: Rollback=1;Height=5;blockA.Hash()=blockB.Hash()
-// Note: blockA.Hash() means its chain is longer than blockB.Hash(), and don't need to rollback
-func handleWriteGroupOne(conn net.Conn, done chan string) {
+func get_rand(upperBond int64) string {
+	maxInt := new(big.Int).SetInt64(upperBond)
+	i, err := rand.Int(rand.Reader, maxInt)
+	if err != nil {
+		fmt.Printf("Can't generate random value: %v, %v", i, err)
+	}
+	outputRand := fmt.Sprintf("%v", i)
+	return outputRand
+}
+
+func send_request(port uint, ip string) {
 	for {
-		_, e := conn.Write([]byte("Rollback=0;Height=" + strconv.Itoa(int(block_height)) + ";\n"))
-		if e != nil {
-			fmt.Println("Error to send message because of ", e.Error())
-			break
-		}
-		time.Sleep(600000 * time.Millisecond)
+		http.Get(fmt.Sprintf("http://%v:%v/broadcast_tx_commit?tx=\"abcd%v\"", ip, port, get_rand(math.MaxInt64)))
 	}
-	done <- "Sent to group 1"
-}
-func handleReadGroupOne(conn net.Conn, done chan string) {
-	for {
-		// receive blocks
-		buf := make([]byte, 1024)
-		reqLen, err := conn.Read(buf)
-		recv := string(buf[:reqLen])
-		if err != nil {
-			fmt.Println("Error to read message because of ", err)
-			break
-		}
-		// TODO: detection and construct evidence, write to send to node
-		fmt.Println("block from group1 is: " + string(buf[:reqLen-1]))
-		hashes := bytes.Split([]byte(recv), []byte(";"))
-		if len(hashes) != 0 {
-			strBlockHash1 = string(hashes[0])
-			for strBlockHash2 == "" {
-				// break
-				// fmt.Println("Ether: wait for group2's block")
-			}
-			// fmt.Println("Ether: now, block1 is", strBlockHash1, "block2 is", strBlockHash2)
-			if strBlockHash1 != strBlockHash2 {
-				_, e := conn.Write([]byte("Rollback=1;Height=" + strconv.Itoa(int(block_height)) + ";" + strBlockHash1 + "=" + strBlockHash2 + ";\n"))
-				if e != nil {
-					fmt.Println("Error to send message because of ", e.Error())
-					break
-				}
-				time.Sleep(600000 * time.Millisecond)
-			}
-		} else {
-			// fmt.Println("Ether: receive a invalid format hash message", recv)
-			continue
-		}
-	}
-
-	done <- "Read from group 1"
-}
-
-func handleWriteGroupTwo(conn net.Conn, done chan string) {
-	for {
-		_, e := conn.Write([]byte("Rollback=0;Height=" + strconv.Itoa(int(block_height)) + ";\n"))
-		if e != nil {
-			fmt.Println("Error to send message because of ", e.Error())
-			break
-		}
-		time.Sleep(600000 * time.Millisecond)
-	}
-	done <- "Sent to group 2"
-}
-func handleReadGroupTwo(conn net.Conn, done chan string) {
-	for {
-		buf := make([]byte, 1024)
-		reqLen, err := conn.Read(buf)
-		recv := string(buf[:reqLen])
-		if err != nil {
-			fmt.Println("Error to read message because of ", err)
-			break
-		}
-		// TODO: detection and construct evidence, write to send to node
-		fmt.Println("block from group2 is: " + string(buf[:reqLen-1]))
-		hashes := bytes.Split([]byte(recv), []byte(";"))
-		if len(hashes) != 0 {
-			strBlockHash2 = string(hashes[0])
-			for strBlockHash1 == "" {
-				// break
-				// fmt.Println("Ether: wait for group1's block")
-			}
-			// fmt.Println("Ether: now, block1 is", strBlockHash1, "block2 is", strBlockHash2)
-			if strBlockHash1 != strBlockHash2 {
-				_, e := conn.Write([]byte("Rollback=1;Height=" + strconv.Itoa(int(block_height)) + ";" + strBlockHash1 + "=" + strBlockHash2 + ";\n"))
-				if e != nil {
-					fmt.Println("Error to send message because of ", e.Error())
-					break
-				}
-				time.Sleep(600000 * time.Millisecond)
-			}
-		} else {
-			// fmt.Println("Ether: receive a invalid format hash message", recv)
-			continue
-		}
-	}
-	done <- "Read from group 2"
-}
-func detectInconsistency(b1 tmbytes.HexBytes, b2 tmbytes.HexBytes) bool {
-	return bytes.Equal(b1, b2)
 }
