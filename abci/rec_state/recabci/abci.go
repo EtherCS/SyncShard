@@ -3,6 +3,7 @@ package recabci
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/tendermint/tendermint/abci/example/code"
 	"github.com/tendermint/tendermint/abci/types"
@@ -51,6 +52,7 @@ func (app *RecoveryApplication) Info(req types.RequestInfo) (resInfo types.Respo
 
 func (app *RecoveryApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	log.Println("abci: begin a block")
+	fmt.Println("Ether recovery test: start block at time", time.Now())
 	app.txToRemove = map[string]struct{}{}
 	app.recState.BeginBlock(req.Header.Height)
 	return types.ResponseBeginBlock{}
@@ -98,6 +100,7 @@ func (app *RecoveryApplication) Commit() types.ResponseCommit {
 	if app.RetainBlocks > 0 && app.recState.Height() >= app.RetainBlocks {
 		resp.RetainHeight = app.recState.Height() - app.RetainBlocks + 1
 	}
+	fmt.Println("Ether recovery test: commit block at time", time.Now())
 	return resp
 }
 
