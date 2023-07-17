@@ -5,3 +5,6 @@ build:
 
 run_test:
 	bash ./scripts/run_test.sh
+
+build_ether:
+	bash ./scripts/recovery/build_executable.sh
