@@ -12,7 +12,7 @@
 
 # TCP or UNIX socket address of the ABCI application,
 # or the name of an ABCI application compiled in with the Tendermint binary
-proxy-app = "tcp://127.0.0.1:20358"
+proxy-app = "tcp://0.0.0.0:20358"
 
 # A custom human readable name for this node
 moniker = "DBD83BFFEBCB4B9B"
@@ -112,7 +112,7 @@ root-ca-file = ""
 [rpc]
 
 # TCP or UNIX socket address for the RPC server to listen on
-laddr = "tcp://127.0.0.1:20357"
+laddr = "tcp://0.0.0.0:20357"
 
 # A list of origins a cross-domain request can be executed from
 # Default value '[]' disables cors support
@@ -229,7 +229,7 @@ external-address = ""
 bootstrap-peers = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent-peers = "9da178a062b4343758bb9b85055be63f4ec20afa@127.0.0.1:20056,21f63cedc82bdd58a289e359d4c3e8e65f88376e@127.0.0.1:20156,1b7566f2bfbb18376dfac12d8ec5f0258e0b9473@127.0.0.1:20256"
+persistent-peers = "9da178a062b4343758bb9b85055be63f4ec20afa@54.211.2.244:20056,21f63cedc82bdd58a289e359d4c3e8e65f88376e@54.183.23.138:20156,1b7566f2bfbb18376dfac12d8ec5f0258e0b9473@54.169.73.30:20256"
 
 # UPNP port forwarding
 upnp = false
@@ -390,9 +390,9 @@ create-empty-blocks-interval = "0s"
 peer-gossip-sleep-duration = "100ms"
 peer-query-maj23-sleep-duration = "2s"
 
-# Byzantine behaviors definitions
-byzantine-double-vote = false
-byzantine-double-proposal = false
+# # Byzantine behaviors definitions
+# byzantine-double-vote = false
+# byzantine-double-proposal = false
 
 ### Unsafe Timeout Overrides ###
 
